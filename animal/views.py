@@ -30,22 +30,15 @@ class CreateAnimal(generics.CreateAPIView):
             animalTypes = request.data['animalTypes']
             Account.objects.get(pk=request.data['chipperId'])
             Location.objects.get(pk=request.data['chippingLocationId'])
-
-            if(len(list(set(animalTypes))) != len(animalTypes)):
-                raise ConflictExistsException('animalTypes has duplicates')
-
-            if AnimalType.objects.filter(id__in=animalTypes).count() != len(animalTypes):
-                raise NotFoundException('animalTypes not found')
         
         except Exception as e:
+            raise NotFoundException(e.args)
 
-            if(type(e) == Account.DoesNotExist):
-                raise NotFoundException('Account not found')
+        if(len(list(set(animalTypes))) != len(animalTypes)):
+            raise ConflictExistsException('animalTypes has duplicates')
 
-            if(type(e) == Location.DoesNotExist):
-                raise NotFoundException('Location not found')
-
-            raise e
+        if AnimalType.objects.filter(id__in=animalTypes).count() != len(animalTypes):
+            raise NotFoundException('animalTypes not found')
 
         return self.create(request, *args, **kwargs)
 
@@ -56,22 +49,7 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
     http_method_names = ['get', 'put', 'delete']
     permission_classes = (CustomPermission,)
 
-    def get(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0))
-
-        if(pk <= 0):
-            raise BadRequestException('animalId should not be null or negitive')
-
-        return self.retrieve(request, *args, **kwargs)
-
     def put(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0))
-
-        if(pk <= 0):
-            raise BadRequestException('animalId should not be null or negitive')
-
-        if(request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
 
         if not validate_dict_number(request.data):
             raise BadRequestException('Invalid request body')
@@ -81,15 +59,7 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
             Location.objects.get(pk=request.data['chippingLocationId'])
 
         except Exception as e:
-            # TODO: check if type(e) in [err, err, err] raise NotFound with object not found
-
-            if(type(e) == Account.DoesNotExist):
-                raise NotFoundException('Account not found')
-
-            if(type(e) == Location.DoesNotExist):
-                raise NotFoundException('Location not found')
-
-            raise e
+            raise NotFoundException('e.args')
 
         instance = self.get_object()
 
@@ -111,20 +81,10 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
         return self.partial_update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0))
-        if(pk <= 0):
-            raise BadRequestException('AnimalId should not be negitive or null')
-        
-        if(request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
 
-        try:
-            animal = Animal.objects.get(pk=pk)
-            if(animal.visitedLocations.count() != 0):
-                raise BadRequestException('Animal has visitLocations')
-
-        except Animal.DoesNotExist:
-            raise NotFoundException('animalId not found')
+        instance = self.get_object()
+        if(instance.visitedLocations.count() != 0):
+            raise BadRequestException('Animal has visitLocations')
 
         return self.destroy(request, *args, **kwargs)
     
@@ -141,7 +101,7 @@ class AnimalList(generics.ListAPIView):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
     permission_classes = (CustomPermission,)
-    
+
     def get_queryset(self):
         
         # Define all query_params
