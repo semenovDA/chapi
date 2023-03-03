@@ -1,12 +1,21 @@
 from rest_framework.views import exception_handler
-import logging
-
+from rest_framework.exceptions import NotAuthenticated
 from account.models import Account
+from .exceptions import *
 
+import logging
 logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
+
+    if(type(exc) == NotAuthenticated):
+
+        return exception_handler(
+            AuthenticationException('Request from unauthorized account'),
+            None
+        )
+
     return response
 
 def ValidateDict(data):

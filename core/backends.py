@@ -9,10 +9,10 @@ class Authentication(BaseAuthentication):
         auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
         
         if not auth_header or auth_header[0].lower() != 'basic':
-            return (AnonymousUser, None)
+            return None
 
         if(len(auth_header) == 1 or len(auth_header) > 2):
-            return (AnonymousUser, None)
+            return None
 
         decoded_credentials = base64.b64decode(auth_header[1]).decode("utf-8").split(':')
         email, password = decoded_credentials[0], decoded_credentials[1]
@@ -26,3 +26,5 @@ class Authentication(BaseAuthentication):
 
         except Account.DoesNotExist:
             raise AuthenticationException('Incorrect creditals')
+
+            
