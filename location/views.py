@@ -18,12 +18,6 @@ class CreateLocation(generics.CreateAPIView):
     serializer_class = LocationSerializer
     permission_classes = (CustomPermission,)
     
-    def post(self, request, *args, **kwargs):
-        if(request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Request from unauthorized account')
-
-        return self.create(request, *args, **kwargs)
-
 # GET, PUT, DELETE on http://localhost:8000/locations/{pointId}
 class LocationDetail(generics.RetrieveUpdateDestroyAPIView):
     
@@ -32,6 +26,7 @@ class LocationDetail(generics.RetrieveUpdateDestroyAPIView):
     http_method_names = ['get', 'put', 'delete']
     permission_classes = (CustomPermission,)
 
+    # TODO: Optimize
     def delete(self, request, *args, **kwargs):
         pk = int(kwargs.get("pk", 0)) 
         
