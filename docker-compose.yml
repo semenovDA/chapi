@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    volumes:
+      - pgdbdata:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB==postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  webapi:
+    build: ./
+    restart: always
+    container_name: webapi
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  tests:
+    image: mrexpen/planet_olymp_phase1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - webapi
+    environment:
+      SERVER_URL: http://172.23.0.3:8000
+      STAGE: all
+
+volumes:
+  pgdbdata: null
