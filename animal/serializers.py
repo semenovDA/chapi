@@ -15,8 +15,8 @@ class AnimalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     
-    def validate(self, attrs):
-        # TODO: Maybe validate at the model part
-        if(attrs['weight'] <= 0 or attrs['length'] <= 0 or attrs['height'] <= 0):
-            raise BadRequestException('Validation Error')
-        return attrs
+    # def validate(self, attrs):
+    #     # TODO: Maybe validate at the model part
+    #     if(attrs['weight'] <= 0 or attrs['length'] <= 0 or attrs['height'] <= 0):
+    #         raise BadRequestException('Validation Error')
+    #     return attrs

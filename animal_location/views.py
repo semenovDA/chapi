@@ -11,7 +11,7 @@ from animal.serializers import AnimalSerializer
 from location.models import Location
 
 from core.exceptions import *
-from core.utils import ValidateDict
+from core.utils import validate_dict_number
 
 import logging
 logger = logging.getLogger('django')
@@ -136,8 +136,8 @@ class AnimalLocationList(generics.ListAPIView):
         if(animalId <= 0):
             raise BadRequestException('animalId cannot be null or negitive')
 
-        if not ValidateDict(request.data):
-            raise BadRequestException('Unvaild request body')
+        if not validate_dict_number(request.data):
+            raise BadRequestException('Invalid request body')
 
         try:
             animal = Animal.objects.get(pk=animalId)

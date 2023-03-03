@@ -5,7 +5,8 @@ from rest_framework.exceptions import ValidationError
 from .models import Animal
 from .serializers import AnimalSerializer
 from core.exceptions import *
-from core.utils import ValidateDict
+from core.utils import validate_dict_number
+from core.permissions import CustomPermission
 
 from animal_type.models import AnimalType
 from animal_location.models import AnimalLocation 
@@ -18,13 +19,11 @@ import datetime
 class CreateAnimal(generics.CreateAPIView):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
+    permission_classes = (CustomPermission,)
 
     def post(self, request, *args, **kwargs):
 
-        if(self.request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-
-        if not ValidateDict(request.data):
+        if not validate_dict_number(request.data):
             raise BadRequestException('Invalid values')
         
         try:
@@ -48,7 +47,6 @@ class CreateAnimal(generics.CreateAPIView):
 
             raise e
 
-
         return self.create(request, *args, **kwargs)
 
 # GET, PUT, DELETE on http://localhost:8000/animals/{animalId}
@@ -56,7 +54,7 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
     http_method_names = ['get', 'put', 'delete']
-    # TODO: raise exception on DELETE if AnimalType related with Animal
+    permission_classes = (CustomPermission,)
 
     def get(self, request, *args, **kwargs):
         pk = int(kwargs.get("pk", 0))
@@ -75,8 +73,8 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
         if(request.user.is_authenticated != True): # Проверка на авторизованность
             raise AuthenticationException('Неверные авторизационные данные')
 
-        if not ValidateDict(request.data):
-            raise BadRequestException('Invalid values')
+        if not validate_dict_number(request.data):
+            raise BadRequestException('Invalid request body')
 
         try:
             Account.objects.get(pk=request.data['chipperId'])
@@ -142,7 +140,8 @@ Additional parmaetrs: firstname, lastName, email, from, size
 class AnimalList(generics.ListAPIView):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
-
+    permission_classes = (CustomPermission,)
+    
     def get_queryset(self):
         
         # Define all query_params

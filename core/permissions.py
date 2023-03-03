@@ -1,17 +1,24 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from .exceptions import *
+from .utils import ValidateDict
+
+import logging
+logger = logging.getLogger(__name__)
 
 class CustomPermission(BasePermission):
 
-    def has_permission(self, request, view):
-
+    def valid_request(self, request):
         kwargs = request.resolver_match.kwargs
 
-        # Checking request
-        pk = int(kwargs.get('pk', 0))
+        for k in kwargs:
+            if(int(kwargs[k]) <= 0):
+                msg = '{} should not be null or negitive int'.format(k)
+                raise BadRequestException(msg)
 
-        if(pk <= 0 and 'pk' in kwargs):
-            raise BadRequestException('pk should not be null or negitive int')
-
+        if not ValidateDict(request.data):
+            raise BadRequestException('Invalid request body')
+            
+    def has_permission(self, request, view):
+        self.valid_request(request)
         return request.user.is_authenticated or request.method in SAFE_METHODS 
         

@@ -37,7 +37,7 @@ services:
       - webapi
     environment:
       SERVER_URL: http://172.23.0.3:8000
-      STAGE: 0
+      STAGE: 2
 
 volumes:
   pgdbdata: null

@@ -1,6 +1,5 @@
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import NotAuthenticated
-from account.models import Account
 from .exceptions import *
 
 import logging
@@ -9,7 +8,7 @@ logger = logging.getLogger(__name__)
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
-    if(type(exc) == NotAuthenticated):
+    if(type(exc) == NotAuthenticated): # Overriding default 500 to 401 HTTP status 
 
         return exception_handler(
             AuthenticationException('Request from unauthorized account'),
@@ -18,25 +17,33 @@ def custom_exception_handler(exc, context):
 
     return response
 
-def ValidateDict(data):
+def validate_dict_array(data):
     for v in data.values():
-
-        if(v == None):
+        if v == None:
             return False
-
-        if(type(v) != list and type(v) != str):
-            if(v <= 0):
-                return False
-
-        elif(type(v) == list):
+        if type(v) == list:
             for i in v:
-                if(i == None):
+                if i == None:
                     return False
-                if(i <= 0):
-                    return False        
-        
-        elif(type(v) == str):
+                if i <= 0:
+                    return False  
+    return True
+
+def validate_dict_string(data):
+    for v in data.values():
+        if type(v) == str:
             if v == '':
                 return False
-
     return True
+
+def validate_dict_number(data):
+    for v in data.values():
+        if(v == None):
+            return False
+        if type(v) == int and int(v) <= 0:
+            return False
+    return True
+
+def ValidateDict(data):
+    return validate_dict_string(data) \
+        and validate_dict_array(data)
