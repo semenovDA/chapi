@@ -12,6 +12,7 @@ from location.models import Location
 
 from core.exceptions import *
 from core.utils import validate_dict_number
+from core.permissions import CustomPermission
 
 import logging
 logger = logging.getLogger('django')
@@ -21,16 +22,11 @@ class AnimalLocationAddition(generics.RetrieveAPIView):
     queryset = AnimalLocation.objects.all()
     serializer_class = AnimalLocationSerializer
     http_method_names = ['post', 'delete']
+    permission_classes = (CustomPermission,)
 
     def post(self, request, *args, **kwargs):
         animalId = int(kwargs.get("animalId", 0))
         pointId = int(kwargs.get("pointId", 0))
-
-        if(self.request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-
-        if animalId <= 0 or pointId <= 0:
-            raise BadRequestException('animalId or pointId cannot be null or negitive')
 
         try:
             animal = Animal.objects.get(pk=animalId)
@@ -60,12 +56,6 @@ class AnimalLocationAddition(generics.RetrieveAPIView):
         animalId = int(kwargs.get("animalId", 0))
         pointId = int(kwargs.get("pointId", 0))
 
-        if(self.request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-
-        if animalId <= 0 or pointId <= 0:
-            raise BadRequestException('animalId or pointId cannot be null or negitive')
-
         try:
             animal = Animal.objects.get(pk=animalId)
 
@@ -91,13 +81,11 @@ class AnimalLocationList(generics.ListAPIView):
     queryset = AnimalLocation.objects.all()
     serializer_class = AnimalLocationSerializer
     http_method_names = ['get', 'put']
+    permission_classes = (CustomPermission,)
 
     def get(self, request, *args, **kwargs):
         animalId = int(kwargs.get("animalId", 0))
-        
-        if(animalId <= 0):
-            raise BadRequestException('animalId should not be null or negitive')
-            
+
         try:
             animal = Animal.objects.get(pk=animalId)
         except Animal.DoesNotExist:
@@ -130,12 +118,6 @@ class AnimalLocationList(generics.ListAPIView):
     def put(self, request, *args, **kwargs):
         animalId = int(kwargs.get("animalId", 0))
         
-        if(self.request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-        
-        if(animalId <= 0):
-            raise BadRequestException('animalId cannot be null or negitive')
-
         if not validate_dict_number(request.data):
             raise BadRequestException('Invalid request body')
 

@@ -34,10 +34,7 @@ class LocationDetail(generics.RetrieveUpdateDestroyAPIView):
             AnimalLocation.objects.filter(locationPointId=pk).values_list('id', flat=True)
         )
 
-        if(
-            Animal.objects.filter(chippingLocationId=pk).exists() or
-            Animal.objects.filter(visitedLocations__in = animal_locations)  
-        ):
+        if(Animal.objects.filter(visitedLocations__in = animal_locations)):
             raise BadRequestException('Location is used by animal')
 
         return self.destroy(request, *args, **kwargs)

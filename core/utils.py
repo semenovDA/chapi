@@ -1,5 +1,6 @@
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import NotAuthenticated
+from django.db.models.deletion import ProtectedError
 from .exceptions import *
 
 import logging
@@ -12,6 +13,13 @@ def custom_exception_handler(exc, context):
 
         return exception_handler(
             AuthenticationException('Request from unauthorized account'),
+            None
+        )
+
+    if(type(exc) == ProtectedError): # Overriding default 500 to 400 HTTP status 
+
+        return exception_handler(
+            BadRequestException('Object is used by another object'),
             None
         )
 

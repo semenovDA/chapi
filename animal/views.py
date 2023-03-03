@@ -59,7 +59,7 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
             Location.objects.get(pk=request.data['chippingLocationId'])
 
         except Exception as e:
-            raise NotFoundException('e.args')
+            raise NotFoundException(e.args)
 
         instance = self.get_object()
 
