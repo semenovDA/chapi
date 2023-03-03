@@ -59,7 +59,7 @@ class AccountList(generics.ListAPIView):
 
 # GET, PUT, DELETE on http://localhost:8000/accounts/{accountId}
 class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
-    
+
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     http_method_names = ['get', 'put', 'delete']
@@ -71,7 +71,6 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
             raise BadRequestException('accountId should be a non negitive int')
 
         return self.retrieve(request, *args, **kwargs)
-
 
     def put(self, request, *args, **kwargs):
         pk = int(kwargs.get("pk", 0)) 
