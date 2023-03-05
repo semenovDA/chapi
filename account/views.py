@@ -8,6 +8,7 @@ from .models import Account
 from animal.models import Animal
 
 from core.exceptions import *
+from core.permissions import CustomPermission
 
 # Register API
 class RegisterAPI(generics.GenericAPIView):
@@ -63,24 +64,11 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     http_method_names = ['get', 'put', 'delete']
-
-    def get(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0)) 
-
-        if(pk <= 0): # проверка на правильность параметров
-            raise BadRequestException('accountId should be a non negitive int')
-
-        return self.retrieve(request, *args, **kwargs)
+    permission_classes = (CustomPermission,)
 
     def put(self, request, *args, **kwargs):
         pk = int(kwargs.get("pk", 0)) 
 
-        if(pk <= 0): # проверка на правильность параметров
-            raise BadRequestException('accountId should not be negitive or null')
-
-        if(request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-        
         if(int(request.user.id) != pk): # Проверка попытки изменении не своего аккаунта
             raise ForbiddenException('Обновление не своего аккаунта')
 
@@ -99,23 +87,7 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
             
         return Response(serializer.data)
 
-    def delete(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0)) 
-
-        if(pk <= 0): # проверка на правильность параметров
-            raise BadRequestException('accountId should not be negitive or null')
-
-        if(request.user.is_authenticated != True): # Проверка на авторизованность
-            raise AuthenticationException('Неверные авторизационные данные')
-        
-        if(int(request.user.id) != pk): # Проверка попытки изменении не своего аккаунта
-            raise ForbiddenException('Обновление не своего аккаунта')
-
-        if(Animal.objects.filter(chipperId=pk).exists()):
-            raise BadRequestException('Account has a chiped animal')
-
-        return self.destroy(request, *args, **kwargs)
-
+    # ON DELETE
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)

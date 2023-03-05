@@ -26,7 +26,6 @@ class AnimalTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         pk = int(kwargs.get("pk", 0))
-
         if(Animal.objects.filter(animalTypes__in=[pk]).exists()):
             raise BadRequestException('AnimalType is used by animal')
 
@@ -63,7 +62,6 @@ class AnimalTypeAddition(generics.RetrieveUpdateDestroyAPIView):
         animal.save()
 
         serializer = AnimalSerializer(animal)
-
         return Response(serializer.data)
 
         
