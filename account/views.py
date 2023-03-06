@@ -1,11 +1,8 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth import login
 
 from .serializers import RegisterSerializer, AccountSerializer
 from .models import Account
-from animal.models import Animal
 
 from core.exceptions import *
 from core.permissions import CustomPermission
@@ -86,6 +83,13 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
             request.user.save()
             
         return Response(serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        
+        if int(kwargs.get("pk", 0))  != request.user.id:
+            raise ForbiddenException('Удаление не своего аккаунта')
+
+        return self.destroy(request, *args, **kwargs)
 
     # ON DELETE
     def destroy(self, request, *args, **kwargs):
