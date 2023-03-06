@@ -1,15 +1,13 @@
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, status
+
 from .models import Location
+from .serializers import LocationSerializer
+
 from animal.models import Animal
 from animal_location.models import AnimalLocation
 
-from .serializers import LocationSerializer
-from core.exceptions import *
-
-import logging
-logger = logging.getLogger(__name__)
-
+from core.exceptions import BadRequestException
 from core.permissions import CustomPermission
 
 # POST on http://localhost:8000/locations
@@ -26,16 +24,17 @@ class LocationDetail(generics.RetrieveUpdateDestroyAPIView):
     http_method_names = ['get', 'put', 'delete']
     permission_classes = (CustomPermission,)
 
-    # TODO: Optimize
+
     def delete(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0)) 
-        
+
         animal_locations = list(
-            AnimalLocation.objects.filter(locationPointId=pk).values_list('id', flat=True)
+            AnimalLocation.objects
+            .filter(locationPointId=int(kwargs.get("pk")))
+            .values_list('id', flat=True)
         )
 
         if(Animal.objects.filter(visitedLocations__in = animal_locations)):
-            raise BadRequestException('Location is used by animal')
+            raise BadRequestException('Location is used by animal visitedLocations')
 
         return self.destroy(request, *args, **kwargs)
 

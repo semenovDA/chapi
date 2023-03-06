@@ -7,13 +7,17 @@ from .models import Account
 from core.exceptions import *
 from core.permissions import CustomPermission
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Register API
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request, *args, **kwargs):
+
         if(self.request.user.is_authenticated == True):
-            raise ForbiddenException('Вы уже авторизированы')
+            raise ForbiddenException('You are already logged in')
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -38,7 +42,7 @@ class AccountList(generics.ListAPIView):
         email = self.request.query_params.get("email", '') 
         from_ = self.request.query_params.get('from', '0')
         size = self.request.query_params.get('size', '10')
-    
+
         if(not (from_.isnumeric() and size.isnumeric())):
             raise BadRequestException('from or size is not numeric')
 
@@ -64,9 +68,9 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (CustomPermission,)
 
     def put(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0)) 
 
-        if(int(request.user.id) != pk): # Проверка попытки изменении не своего аккаунта
+        # Проверка попытки изменении не своего аккаунта
+        if(int(request.user.id) != int(kwargs.get("pk"))):
             raise ForbiddenException('Обновление не своего аккаунта')
 
         return self.update(request, *args, **kwargs)
@@ -85,13 +89,12 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
-        
-        if int(kwargs.get("pk", 0))  != request.user.id:
-            raise ForbiddenException('Удаление не своего аккаунта')
 
+        if int(kwargs.get("pk")) != request.user.id:
+            raise ForbiddenException('Удаление не своего аккаунта')
+        
         return self.destroy(request, *args, **kwargs)
 
-    # ON DELETE
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)

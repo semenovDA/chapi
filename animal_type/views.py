@@ -1,10 +1,12 @@
 from rest_framework.response import Response
 from rest_framework import generics, status
+
 from .models import AnimalType
+from .serializers import AnimalTypeSerializer
+
 from animal.models import Animal
 from animal.serializers import AnimalSerializer
 
-from .serializers import AnimalTypeSerializer
 from core.exceptions import *
 from core.utils import validate_dict_number
 from core.permissions import CustomPermission
@@ -24,7 +26,7 @@ class AnimalTypeDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (CustomPermission,)
 
     def delete(self, request, *args, **kwargs):
-        pk = int(kwargs.get("pk", 0))
+        pk = int(kwargs.get("pk"))
         if(Animal.objects.filter(animalTypes__in=[pk]).exists()):
             raise BadRequestException('AnimalType is used by animal')
 
@@ -43,18 +45,18 @@ class AnimalTypeAddition(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (CustomPermission,)
 
     def post(self, request, *args, **kwargs):
-        animalId = int(kwargs.get("animalId", 0))
-        typeId = int(kwargs.get("typeId", 0))
+        animalId = int(kwargs.get("animalId"))
+        typeId = int(kwargs.get("typeId"))
 
         try:
             animal = Animal.objects.get(pk=animalId)
             AnimalType.objects.get(pk=typeId)
 
         except Exception as e:
-            raise NotFoundException('AnimalId or AnimalType not found')
+            raise NotFoundException(e.args)
 
         # Handle duplicates
-        if(animal.animalTypes.filter(id=typeId).count() != 0):
+        if(animal.animalTypes.filter(id=typeId).exists()):
             raise BadRequestException('typeId already in animal animalTypes')
         
         animal.animalTypes.add(typeId)
@@ -66,19 +68,20 @@ class AnimalTypeAddition(generics.RetrieveUpdateDestroyAPIView):
         
     def delete(self, request, *args, **kwargs):
         
-        animalId = int(kwargs.get("animalId", 0))
-        typeId = int(kwargs.get("typeId", 0))
+        animalId = int(kwargs.get("animalId"))
+        typeId = int(kwargs.get("typeId"))
 
         try:
             animal = Animal.objects.get(pk=animalId)
             AnimalType.objects.get(pk=typeId)
+
             if(not animal.animalTypes.filter(id=typeId).exists()):
                 raise NotFoundException('typeId is not in animalTypes')
 
         except Exception as e:
             raise NotFoundException(e.args)
         
-        if(animal.animalTypes.count() == 1 and animal.animalTypes.first().id == typeId):
+        if(animal.animalTypes.count() == 1):
             raise BadRequestException('Cannot delete the last type in animal')
 
         animal.animalTypes.remove(typeId)
@@ -90,14 +93,14 @@ class AnimalTypeAddition(generics.RetrieveUpdateDestroyAPIView):
 
 
 # PUT on http://localhost:8000/animals/{animalId}/types
-class AnimalTypeEdition(generics.RetrieveAPIView):
+class AnimalTypeEdition(generics.UpdateAPIView):
     queryset = AnimalType.objects.all()
     serializer_class = AnimalTypeSerializer
     http_method_names = ['put']
     permission_classes = (CustomPermission,)
 
     def put(self, request, *args, **kwargs):
-        animalId = int(kwargs.get("animalId", 0))
+        animalId = int(kwargs.get("animalId"))
 
         if not validate_dict_number(request.data):
             raise BadRequestException('Invalid request body')

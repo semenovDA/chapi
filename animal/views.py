@@ -24,7 +24,7 @@ class CreateAnimal(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
 
         if not validate_dict_number(request.data):
-            raise BadRequestException('Invalid values')
+            raise BadRequestException('Invalid values in request body')
         
         try:
             animalTypes = request.data['animalTypes']
@@ -71,7 +71,7 @@ class AnimalDetail(generics.RetrieveUpdateDestroyAPIView):
                 instance.save()
 
             elif(instance.lifeStatus == 'DEAD' and request.data['lifeStatus'] == 'ALIVE'):
-                raise BadRequestException('Cannot change DEAD status on ALIVE')
+                raise BadRequestException('Cannot change DEAD status to ALIVE')
 
         # CHIPPING LOCATION HANDLING
         if(instance.visitedLocations.count() > 0):

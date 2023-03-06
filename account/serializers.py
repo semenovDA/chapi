@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Account
 
-from django.core.exceptions import ValidationError
 from core.exceptions import *
 
 # Account Serializer

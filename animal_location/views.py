@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import generics, status
 
@@ -6,16 +5,12 @@ from .models import AnimalLocation
 from .serializers import AnimalLocationSerializer
 
 from animal.models import Animal
-from animal.serializers import AnimalSerializer
 
 from location.models import Location
 
 from core.exceptions import *
 from core.utils import validate_dict_number
 from core.permissions import CustomPermission
-
-import logging
-logger = logging.getLogger('django')
 
 # POST on http://localhost:8000/animals/{animalId}/locations/{pointId}
 class AnimalLocationAddition(generics.RetrieveAPIView):
