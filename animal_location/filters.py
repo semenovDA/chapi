@@ -1,19 +1,15 @@
 from django_filters import rest_framework as filters
-from .models import Account
+from .models import AnimalLocation
 from core.exceptions import BadRequestException
 
-class AccountFilter(filters.FilterSet):
-    firstName = filters.CharFilter(lookup_expr='icontains')
-    lastName = filters.CharFilter(lookup_expr='icontains')
-    email = filters.CharFilter(lookup_expr='icontains')
+class AnimalLocationFilter(filters.FilterSet):
+    startDateTime = filters.IsoDateTimeFilter(field_name='dateTimeOfVisitLocationPoint', lookup_expr='gte')
+    endDateTime = filters.IsoDateTimeFilter(field_name='dateTimeOfVisitLocationPoint', lookup_expr='lte')
+
 
     class Meta:
-        model = Account
-        fields = [
-            'firstName', 
-            'lastName', 
-            'email'
-        ]
+        model = AnimalLocation
+        fields = ['dateTimeOfVisitLocationPoint']
 
     def filter_queryset(self, queryset):
         try:

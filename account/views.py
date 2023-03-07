@@ -7,12 +7,19 @@ from .models import Account
 from .filters import AccountFilter
 
 from core.exceptions import *
-from core.permissions import CustomPermission
+from core.permissions import OwnerPermission
 
-import logging
-logger = logging.getLogger(__name__)
-
-# Register API
+"""
+POST on http://localhost:8000/registration
+Request body:
+{
+    firstName: String
+    lastName: String
+    email: Email(String)
+    password: String
+}
+Respone: 200 | 400 | 403 | 409 
+"""
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
@@ -30,7 +37,6 @@ class RegisterAPI(generics.GenericAPIView):
 """
 GET on http://localhost:8000/accounts/search
 Additional parmaetrs: firstname, lastName, email, from, size
-
 """
 class AccountList(generics.ListAPIView):
     queryset = Account.objects.all().order_by('id')
@@ -45,16 +51,7 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     http_method_names = ['get', 'put', 'delete']
-    permission_classes = (CustomPermission,)
-
-    def put(self, request, *args, **kwargs):
-
-        # Проверка попытки изменении не своего аккаунта
-        if(int(request.user.id) != int(kwargs.get("pk"))):
-            raise ForbiddenException('Обновление не своего аккаунта')
-
-        return self.update(request, *args, **kwargs)
-
+    permission_classes = (OwnerPermission,)
 
     def update(self, request, *args, **kwargs):
         serializer = RegisterSerializer(instance=request.user, data=request.data)
@@ -63,17 +60,10 @@ class AccountDetail(generics.RetrieveUpdateDestroyAPIView):
 
         # set password by method set_password if password changed
         if('password' in request.data):
-            request.user.set_password(request.data['password'])
+            request.user.set_password(request.data['password']) # pbkdf2_sha256 hashed
             request.user.save()
             
         return Response(serializer.data)
-
-    def delete(self, request, *args, **kwargs):
-
-        if int(kwargs.get("pk")) != request.user.id:
-            raise ForbiddenException('Удаление не своего аккаунта')
-        
-        return self.destroy(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

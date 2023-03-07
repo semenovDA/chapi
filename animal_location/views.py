@@ -3,6 +3,7 @@ from rest_framework import generics, status
 
 from .models import AnimalLocation
 from .serializers import AnimalLocationSerializer
+from .filters import AnimalLocationFilter
 
 from animal.models import Animal
 
@@ -11,6 +12,8 @@ from location.models import Location
 from core.exceptions import *
 from core.utils import validate_dict_number
 from core.permissions import CustomPermission
+
+from django_filters import rest_framework as filters
 
 # POST on http://localhost:8000/animals/{animalId}/locations/{pointId}
 class AnimalLocationAddition(generics.RetrieveAPIView):
@@ -73,42 +76,23 @@ GET on http://localhost:8000/animals/{animalId}/locations
 Additional parmaetrs: startDateTime, endDateTime, from, size
 '''
 class AnimalLocationList(generics.ListAPIView):
-    queryset = AnimalLocation.objects.all()
+    queryset = AnimalLocation.objects.all().order_by('id')
     serializer_class = AnimalLocationSerializer
     http_method_names = ['get', 'put']
     permission_classes = (CustomPermission,)
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AnimalLocationFilter
 
     def get(self, request, *args, **kwargs):
-        animalId = int(kwargs.get("animalId", 0))
+        animalId = int(kwargs.get("animalId"))
 
         try:
-            animal = Animal.objects.get(pk=animalId)
+            Animal.objects.get(pk=animalId)
+
         except Animal.DoesNotExist:
-            raise NotFoundException('Animal type not found')
+            raise NotFoundException('animalId not found')
 
-        # Define all query_params
-        startDateTime = self.request.query_params.get('startDateTime', None) 
-        endDateTime = self.request.query_params.get('endDateTime', '') 
-        from_ = self.request.query_params.get('from', '0')
-        size = self.request.query_params.get('size', '10')
-            
-        if(not (from_.isnumeric() and size.isnumeric())):
-            raise BadRequestException('from or size is not numeric')
-
-        from_, size = int(from_), int(size)
-
-        if(from_ < 0 or size <= 0):
-            raise BadRequestException('from and size should be > 0 and not equals null')
-
-        filter = {}
-        if startDateTime != None and endDateTime != None:
-            filter['dateTimeOfVisitLocationPoint__range'] = (startDateTime, endDateTime)
-
-        queryset = animal.visitedLocations.filter(**filter)
-        serializer = AnimalLocationSerializer(queryset, many=True)
-        return Response(serializer.data[from_:from_+size])
-
-
+        return self.list(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         animalId = int(kwargs.get("animalId", 0))
