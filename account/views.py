@@ -1,8 +1,10 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 
 from .serializers import RegisterSerializer, AccountSerializer
 from .models import Account
+from .filters import AccountFilter
 
 from core.exceptions import *
 from core.permissions import CustomPermission
@@ -31,32 +33,10 @@ Additional parmaetrs: firstname, lastName, email, from, size
 
 """
 class AccountList(generics.ListAPIView):
-    queryset = Account.objects.all()
+    queryset = Account.objects.all().order_by('id')
     serializer_class = AccountSerializer
-
-    def get_queryset(self):
-    
-        # Define all query_params
-        firstName = self.request.query_params.get("firstName", '') 
-        lastName = self.request.query_params.get("lastName", '') 
-        email = self.request.query_params.get("email", '') 
-        from_ = self.request.query_params.get('from', '0')
-        size = self.request.query_params.get('size', '10')
-
-        if(not (from_.isnumeric() and size.isnumeric())):
-            raise BadRequestException('from or size is not numeric')
-
-        from_, size = int(from_), int(size)
-
-        if(from_ < 0 or size <= 0):
-            raise BadRequestException('from and size should be > 0 and not equals null')
-
-        # Filter by query_params
-        queryset = Account.objects.filter(firstName__icontains = firstName,
-                                    lastName__icontains = lastName,
-                                    email__icontains = email).order_by('-id').reverse()
-
-        return queryset[from_:from_+size]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AccountFilter
 
 
 # GET, PUT, DELETE on http://localhost:8000/accounts/{accountId}

@@ -1,9 +1,13 @@
-from rest_framework.response import Response
+import datetime
+
 from rest_framework import generics, status
+from rest_framework.response import Response
+from django_filters import rest_framework as filters
 
 from .models import Animal
 from .filters import AnimalFilter
 from .serializers import AnimalSerializer
+
 from core.exceptions import *
 from core.utils import validate_dict_number
 from core.permissions import CustomPermission
@@ -11,10 +15,6 @@ from core.permissions import CustomPermission
 from animal_type.models import AnimalType
 from location.models import Location
 from account.models import Account
-
-import datetime, logging
-logger = logging.getLogger(__name__)
-from django_filters import rest_framework as filters
 
 # POST on http://localhost:8000/animals
 class CreateAnimal(generics.CreateAPIView):
