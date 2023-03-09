@@ -23,8 +23,8 @@ class AnimalLocationAddition(generics.RetrieveAPIView):
     permission_classes = (CustomPermission,)
 
     def post(self, request, *args, **kwargs):
-        animalId = int(kwargs.get("animalId", 0))
-        pointId = int(kwargs.get("pointId", 0))
+        animalId = int(kwargs.get("animalId"))
+        pointId = int(kwargs.get("pointId"))
 
         try:
             animal = Animal.objects.get(pk=animalId)

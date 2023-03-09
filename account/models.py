@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-import logging
-logger = logging.getLogger(__name__)
-
 class AccountManager(BaseUserManager):
     def create_user(self, firstName, lastName, email, password=None):
 
@@ -34,11 +31,3 @@ class Account(AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     objects = AccountManager()
-
-    def has_perm(self, perm, obj=None):
-        logger.error('[MODELS] has_perm')
-        return True
-
-    def has_module_perms(self, app_label):
-        logger.error('[MODELS] has_module_perms')
-        return True
