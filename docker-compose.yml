@@ -29,15 +29,15 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
-  tests:
-    image: mrexpen/planet_olymp_phase1
-    ports:
-      - "8080:8080"
-    depends_on:
-      - webapi
-    environment:
-      SERVER_URL: http://172.23.0.3:8000
-      STAGE: 2
+  # tests:
+  #   image: mrexpen/planet_olymp_phase1
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - webapi
+  #   environment:
+  #     SERVER_URL: http://172.23.0.3:8000
+  #     STAGE: 2
 
 volumes:
   pgdbdata: null

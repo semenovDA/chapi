@@ -85,13 +85,10 @@ class AnimalLocationList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         animalId = int(kwargs.get("animalId"))
-
-        try:
-            Animal.objects.get(pk=animalId)
-
-        except Animal.DoesNotExist:
-            raise NotFoundException('animalId not found')
-
+        animal = Animal.objects.get(pk = animalId)
+        self.queryset = self.queryset.filter(
+            id__in = animal.visitedLocations.all()
+        )
         return self.list(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
@@ -104,7 +101,10 @@ class AnimalLocationList(generics.ListAPIView):
             animal = Animal.objects.get(pk=animalId)
             location = Location.objects.get(pk = request.data['locationPointId'])
 
-            if not animal.visitedLocations.filter(pk=request.data['visitedLocationPointId']).exists():
+            if not animal.visitedLocations.filter(
+                pk=request.data['visitedLocationPointId']
+            ).exists():
+
                 raise NotFoundException('There not visitedLocationPointId in animal.visitedLocations')
 
         except Exception as e:

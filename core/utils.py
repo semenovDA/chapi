@@ -1,5 +1,5 @@
 from rest_framework.views import exception_handler
-from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated, NotFound
 from django.db.models.deletion import ProtectedError
 from .exceptions import *
 
@@ -9,6 +9,14 @@ logger = logging.getLogger(__name__)
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
+    if(type(exc) == ProtectedError): # Overriding default 500 to 400 HTTP status 
+
+        return exception_handler(
+            BadRequestException('Object is used by another object'),
+            None
+        )
+
+
     if(type(exc) == NotAuthenticated): # Overriding default 500 to 401 HTTP status 
 
         return exception_handler(
@@ -16,10 +24,10 @@ def custom_exception_handler(exc, context):
             None
         )
 
-    if(type(exc) == ProtectedError): # Overriding default 500 to 400 HTTP status 
+    if(type(exc) == NotFound): # Overriding default 500 to 401 HTTP status 
 
         return exception_handler(
-            BadRequestException('Object is used by another object'),
+            NotFoundException('Object not found'),
             None
         )
 

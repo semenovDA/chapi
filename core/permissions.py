@@ -15,7 +15,7 @@ class CustomPermission(BasePermission):
                 msg = '{} should not be null or negitive int'.format(k)
                 raise BadRequestException(msg)
 
-        if not ValidateDict(request.data):
+        if not ValidateDict(request.data) and not (request.method in SAFE_METHODS):
             raise BadRequestException('Invalid request body')
             
     def has_permission(self, request, view):
@@ -30,8 +30,8 @@ class OwnerPermission(CustomPermission):
 
         super().valid_request(request)
 
-        if not (request.method in SAFE_METHODS):
-            if(int(request.user.id) != int(kwargs.get("pk"))):
+        if not (request.method in SAFE_METHODS) and request.user.is_authenticated:
+            if(request.user.id != int(kwargs.get("pk"))):
                 raise ForbiddenException('You are not the owner of object')
             
     def has_permission(self, request, view):
